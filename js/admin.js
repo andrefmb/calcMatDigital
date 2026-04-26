@@ -190,8 +190,7 @@ async function verResultados(turmaId, turmaNome) {
             document.getElementById('kpiWeakness').innerText = '–';
             document.getElementById('statMediaGeral').innerText = '–';
             document.getElementById('subtituloResultados').innerText = 'Nenhuma resposta registrada ainda.';
-            document.getElementById('insightsStrengths').innerHTML = '<p style="font-size:0.875rem;">Ainda não há dados suficientes.</p>';
-            document.getElementById('insightsWeaknesses').innerHTML = '<p style="font-size:0.875rem;">Ainda não há dados suficientes.</p>';
+            document.getElementById('insightsDiagnostico').innerHTML = '<p style="font-size:0.875rem;">Ainda não há dados suficientes.</p>';
             renderCharts([0,0,0,0], [0,0,0,0]);
             return;
         }
@@ -215,18 +214,15 @@ async function verResultados(turmaId, turmaNome) {
         document.getElementById('kpiMedia').innerText = `${avgTotal.toFixed(1)}%`;
         document.getElementById('statMediaGeral').innerText = `${avgTotal.toFixed(1)}%`;
 
-        // Find Strongest + Weakest Dimension
+        // Find best + worst scoring dimensions (for KPI cards only — purely factual, not judgmental)
         const dimScores = DIMENSIONS.map((name, i) => ({ name, score: avgs[DIM_KEYS[i]] }));
         dimScores.sort((a, b) => b.score - a.score);
         
-        const strongest = dimScores[0];
-        const weakest = dimScores[dimScores.length - 1];
+        document.getElementById('kpiStrength').innerText = dimScores[0].name;
+        document.getElementById('kpiWeakness').innerText = dimScores[dimScores.length - 1].name;
 
-        document.getElementById('kpiStrength').innerText = strongest.name;
-        document.getElementById('kpiWeakness').innerText = weakest.name;
-
-        // Render Insights
-        renderInsights(dimScores);
+        // Render Diagnostics (absolute thresholds)
+        renderDiagnostico(dimScores);
 
         // Render Charts
         renderCharts(
@@ -241,58 +237,68 @@ async function verResultados(turmaId, turmaNome) {
 }
 
 // ═══════════════════════════════════════════
-// INSIGHTS 
+// DIAGNOSTICO (Absolute Threshold Analysis)
+// Based on Westerman et al., MIT/Deloitte maturity models
 // ═══════════════════════════════════════════
-const INSIGHT_DETAILS = {
+
+const DIM_RECOMMENDATIONS = {
     'Tecnologia': {
-        high: 'Infraestrutura robusta e segurança automatizada indicam alta prontidão tecnológica.',
-        low: 'Infraestrutura legada e segurança reativa representam riscos operacionais significativos.'
+        critico: 'Priorize a migração de infraestrutura legada para nuvem e estabeleça políticas básicas de segurança.',
+        desenvolvimento: 'Avance a integração dos sistemas em nuvem e automatize monitoramento de segurança.',
+        consolidado: 'Explore arquiteturas cloud-native e implemente DevSecOps nos pipelines principais.',
+        avancado: 'Posição de excelência. Mantenha investimento em inovação e segurança preditiva.'
     },
     'Dados & Analytics': {
-        high: 'Cultura orientada a dados consolidada, com governança e decisões baseadas em analytics.',
-        low: 'Dados em silos e decisões por intuição limitam a capacidade analítica e estratégica.'
+        critico: 'Quebre silos de dados entre departamentos e inicie a construção de dashboards operacionais.',
+        desenvolvimento: 'Unificar as fontes de dados em um Data Warehouse e estabelecer governança básica.',
+        consolidado: 'Implementar análises preditivas e iniciar projetos-piloto com IA/ML.',
+        avancado: 'Governança madura. Explore Data Mesh e democratize o acesso analítico.'
     },
     'Processos Digitais': {
-        high: 'Jornadas digitais fluidas e agilidade metodológica garantem velocidade de adaptação.',
-        low: 'Processos manuais e ciclos lentos de entrega dificultam a competitividade digital.'
+        critico: 'Digitalize os canais de atendimento ao cliente e mapeie processos-chave para automação.',
+        desenvolvimento: 'Implemente jornadas omnichannel e forme ao menos um squad ágil piloto.',
+        consolidado: 'Escale a agilidade para mais times e implemente CI/CD nos processos críticos.',
+        avancado: 'Operação ágil madura. Explore personalização algorítmica e inovação contínua.'
     },
     'Pessoas & Cultura': {
-        high: 'Liderança engajada e upskilling contínuo formam uma cultura digital madura.',
-        low: 'Lacunas de capacitação e resistência da liderança freiam a transformação digital.'
+        critico: 'Crie um programa básico de letramento digital e sensibilize a liderança sobre transformação digital.',
+        desenvolvimento: 'Estruture trilhas de upskilling e envolva lideranças como sponsors de projetos digitais.',
+        consolidado: 'Vincule capacitação digital às métricas de desempenho e amplie a cultura de experimentação.',
+        avancado: 'Cultura digital exemplar. Promova autonomia e inovação descentralizada.'
     }
 };
 
-function renderInsights(dimScores) {
-    const strengthsEl = document.getElementById('insightsStrengths');
-    const weaknessesEl = document.getElementById('insightsWeaknesses');
-    strengthsEl.innerHTML = '';
-    weaknessesEl.innerHTML = '';
+function getDimTierAdmin(score) {
+    if (score >= 80) return { label: 'Avançado', key: 'avancado', color: '#10b981', bg: '#d1fae5', icon: '✓' };
+    if (score >= 60) return { label: 'Consolidado', key: 'consolidado', color: '#4f46e5', bg: '#eef2ff', icon: '▲' };
+    if (score >= 40) return { label: 'Em Desenvolvimento', key: 'desenvolvimento', color: '#f59e0b', bg: '#fef3c7', icon: '●' };
+    return { label: 'Crítico', key: 'critico', color: '#ef4444', bg: '#fee2e2', icon: '▼' };
+}
 
-    // Strengths: top 2
-    dimScores.slice(0, 2).forEach(dim => {
-        strengthsEl.innerHTML += `
-            <div class="insight-chip">
-                <div class="insight-icon strength">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-                </div>
-                <div>
-                    <div class="insight-title">${dim.name} · ${dim.score.toFixed(1)}%</div>
-                    <div class="insight-subtitle">${INSIGHT_DETAILS[dim.name]?.high || ''}</div>
-                </div>
-            </div>
-        `;
-    });
+function renderDiagnostico(dimScores) {
+    const container = document.getElementById('insightsDiagnostico');
+    container.innerHTML = '';
 
-    // Weaknesses: bottom 2 (reversed)
-    dimScores.slice(-2).reverse().forEach(dim => {
-        weaknessesEl.innerHTML += `
+    if (dimScores.length === 0) {
+        container.innerHTML = '<p style="font-size:0.875rem;">Ainda não há dados suficientes.</p>';
+        return;
+    }
+
+    dimScores.forEach(dim => {
+        const tier = getDimTierAdmin(dim.score);
+        const rec = DIM_RECOMMENDATIONS[dim.name]?.[tier.key] || '';
+
+        container.innerHTML += `
             <div class="insight-chip">
-                <div class="insight-icon weakness">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
+                <div style="width:40px;height:40px;border-radius:10px;background:${tier.bg};color:${tier.color};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:800;font-size:0.875rem;">
+                    ${dim.score.toFixed(0)}%
                 </div>
-                <div>
-                    <div class="insight-title">${dim.name} · ${dim.score.toFixed(1)}%</div>
-                    <div class="insight-subtitle">${INSIGHT_DETAILS[dim.name]?.low || ''}</div>
+                <div style="flex:1;">
+                    <div class="flex items-center gap-2">
+                        <div class="insight-title">${dim.name}</div>
+                        <span style="font-size:0.6875rem;font-weight:700;padding:0.125rem 0.5rem;border-radius:9999px;background:${tier.bg};color:${tier.color};">${tier.label}</span>
+                    </div>
+                    <div class="insight-subtitle">${rec}</div>
                 </div>
             </div>
         `;

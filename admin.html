@@ -130,12 +130,12 @@
           <div class="stat-value" id="kpiMedia">0%</div>
         </div>
         <div class="card" style="padding:1.25rem;">
-          <div class="stat-label">Maior Força</div>
-          <div class="stat-value" id="kpiStrength" style="font-size:1rem;color:var(--success);">–</div>
+          <div class="stat-label">Melhor Dimensão</div>
+          <div class="stat-value" id="kpiStrength" style="font-size:1rem;color:var(--primary);">–</div>
         </div>
         <div class="card" style="padding:1.25rem;">
-          <div class="stat-label">Maior Fraqueza</div>
-          <div class="stat-value" id="kpiWeakness" style="font-size:1rem;color:var(--danger);">–</div>
+          <div class="stat-label">Menor Dimensão</div>
+          <div class="stat-value" id="kpiWeakness" style="font-size:1rem;color:var(--text-muted);">–</div>
         </div>
       </div>
 
@@ -155,23 +155,11 @@
         </div>
       </div>
 
-      <!-- Insights Row -->
-      <div class="grid md-grid-2 gap-6 fade-up" style="animation-delay:0.15s;">
-        <div class="card">
-          <h3 class="mb-4">
-            <span style="color:var(--success);">▲</span> Fortalezas
-          </h3>
-          <div class="flex flex-col gap-3" id="insightsStrengths">
-            <!-- Populated by JS -->
-          </div>
-        </div>
-        <div class="card">
-          <h3 class="mb-4">
-            <span style="color:var(--danger);">▼</span> Oportunidades de Melhoria
-          </h3>
-          <div class="flex flex-col gap-3" id="insightsWeaknesses">
-            <!-- Populated by JS -->
-          </div>
+      <!-- Insights Row: Absolute threshold analysis per dimension -->
+      <div class="card fade-up" style="animation-delay:0.15s;">
+        <h3 class="mb-4">Diagnóstico por Dimensão</h3>
+        <div class="flex flex-col gap-3" id="insightsDiagnostico">
+          <!-- Populated by JS -->
         </div>
       </div>
     </section>

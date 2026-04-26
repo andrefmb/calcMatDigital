@@ -255,38 +255,62 @@ function renderResult(sTotal, classification, scores) {
         }
     });
 
-    // Dimension Breakdown Cards
+    // Dimension Breakdown Cards (absolute threshold analysis)
     const breakdown = document.getElementById('dimBreakdown');
     breakdown.innerHTML = '';
     
     const dimData = DIMENSIONS.map((name, i) => ({ name, score: scores[i] }));
-    dimData.sort((a, b) => b.score - a.score);
 
-    dimData.forEach((dim, idx) => {
-        const isStrength = idx < 2;
-        const color = isStrength ? 'var(--success)' : 'var(--danger)';
-        const bgColor = isStrength ? 'var(--success-light)' : 'var(--danger-light)';
-        const label = isStrength ? 'Força' : 'Oportunidade';
-        const icon = isStrength 
-            ? '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>'
-            : '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>';
+    dimData.forEach(dim => {
+        const tier = getDimTier(dim.score);
         
         breakdown.innerHTML += `
             <div class="card" style="padding:1.25rem;">
                 <div class="flex items-center justify-between mb-2">
                     <div class="flex items-center gap-2">
-                        <div style="width:32px;height:32px;border-radius:8px;background:${bgColor};color:${color};display:flex;align-items:center;justify-content:center;">
-                            ${icon}
+                        <div style="width:32px;height:32px;border-radius:8px;background:${tier.bg};color:${tier.color};display:flex;align-items:center;justify-content:center;">
+                            ${tier.icon}
                         </div>
                         <h4 style="font-size:0.9375rem;font-weight:600;">${dim.name}</h4>
                     </div>
-                    <span style="font-weight:800;font-size:1.25rem;color:${color};">${dim.score.toFixed(0)}%</span>
+                    <span style="font-weight:800;font-size:1.25rem;color:${tier.color};">${dim.score.toFixed(0)}%</span>
                 </div>
                 <div style="height:6px;background:var(--border-light);border-radius:3px;overflow:hidden;">
-                    <div style="height:100%;width:${dim.score}%;background:${color};border-radius:3px;transition:width 0.6s ease;"></div>
+                    <div style="height:100%;width:${dim.score}%;background:${tier.color};border-radius:3px;transition:width 0.6s ease;"></div>
                 </div>
-                <p style="font-size:0.75rem;color:var(--text-light);margin-top:0.5rem;">${label}</p>
+                <p style="font-size:0.75rem;color:var(--text-light);margin-top:0.5rem;">${tier.label}</p>
             </div>
         `;
     });
+}
+
+/**
+ * Classify a dimension score into absolute maturity tiers.
+ * Based on digital maturity models (Westerman et al., MIT/Deloitte).
+ */
+function getDimTier(score) {
+    if (score >= 80) return {
+        label: 'Avançado',
+        color: 'var(--success)',
+        bg: 'var(--success-light)',
+        icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+    };
+    if (score >= 60) return {
+        label: 'Consolidado',
+        color: 'var(--primary)',
+        bg: 'var(--primary-light)',
+        icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>'
+    };
+    if (score >= 40) return {
+        label: 'Em Desenvolvimento',
+        color: 'var(--warning)',
+        bg: 'var(--warning-light)',
+        icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
+    };
+    return {
+        label: 'Crítico',
+        color: 'var(--danger)',
+        bg: 'var(--danger-light)',
+        icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+    };
 }
