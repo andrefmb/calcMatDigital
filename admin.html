@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin · Calculadora de Maturidade Digital</title>
+  <meta name="description" content="Painel administrativo para gestão de turmas e análise de maturidade digital.">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="container">
+      <a href="#" class="logo">
+        <div class="logo-icon">M</div>
+        Maturidade Digital <span class="logo-subtitle">· Painel Admin</span>
+      </a>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- ─────── Top Row: Create + Stats ─────── -->
+    <div class="grid md-grid-2 gap-6 mb-8">
+      <!-- Create Cohort -->
+      <section class="card fade-up">
+        <div class="flex items-center gap-3 mb-6">
+          <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--primary),#7c3aed);display:flex;align-items:center;justify-content:center;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </div>
+          <div>
+            <h2 style="font-size:1.125rem;">Nova Turma</h2>
+            <p style="font-size:0.8125rem;margin:0;">Crie um código exclusivo para sua turma</p>
+          </div>
+        </div>
+        
+        <form id="form-nova-turma">
+          <div class="form-group">
+            <label for="nomeTurma" class="form-label">Nome da Turma</label>
+            <input type="text" id="nomeTurma" class="form-control" placeholder="Ex: MBA Inovação · Turma 42" required>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">
+            Criar Turma
+          </button>
+        </form>
+
+        <div id="resultadoTurmaCriada" class="hidden mt-6" style="background:var(--primary-light);border:1.5px solid rgba(79,70,229,0.2);border-radius:var(--radius-sm);padding:1.25rem;">
+          <div class="flex items-center gap-2 mb-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <span style="font-weight:700;color:var(--primary-dark);font-size:0.875rem;">Turma criada com sucesso</span>
+          </div>
+          <p style="font-size:0.8125rem;margin-bottom:0.75rem;">Compartilhe este link com os alunos:</p>
+          <div class="flex gap-2">
+            <input type="text" id="linkTurma" class="form-control" readonly style="background:white;font-size:0.8125rem;">
+            <button id="btnCopiarLink" class="btn btn-secondary btn-sm" title="Copiar">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              Copiar
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Global Stats -->
+      <section class="card fade-up" id="turmaOverviewStats" style="animation-delay:0.05s;">
+        <div class="flex items-center gap-3 mb-6">
+          <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#0891b2);display:flex;align-items:center;justify-content:center;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+          </div>
+          <div>
+            <h2 style="font-size:1.125rem;">Visão Geral</h2>
+            <p style="font-size:0.8125rem;margin:0;">Selecione uma turma para explorar</p>
+          </div>
+        </div>
+        <div class="grid gap-4" style="grid-template-columns:1fr 1fr;">
+          <div class="stat-card">
+            <div class="stat-label">Total de Respostas</div>
+            <div class="stat-value" id="statTotalRespostas">–</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Média Geral</div>
+            <div class="stat-value" id="statMediaGeral">–</div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ─────── Cohorts Table ─────── -->
+    <section class="card mb-8 fade-up" style="animation-delay:0.1s;">
+      <div class="flex items-center justify-between mb-4">
+        <h2 style="font-size:1.125rem;">Minhas Turmas</h2>
+      </div>
+      <div class="table-wrap">
+        <table id="tabelaTurmas">
+          <thead>
+            <tr>
+              <th>Turma</th>
+              <th>Código</th>
+              <th>Criada em</th>
+              <th>Respostas</th>
+              <th style="text-align:right;">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="turmasBody">
+            <tr><td colspan="5"><div class="empty-state"><p>Carregando turmas...</p></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ─────── Cohort Dashboard (Initially Hidden) ─────── -->
+    <section id="secaoResultados" class="hidden">
+      <div class="flex items-center justify-between mb-6 fade-up">
+        <div>
+          <h2 id="tituloResultadosTurma" style="margin-bottom:0.125rem;">Dashboard da Turma</h2>
+          <p style="font-size:0.875rem;" id="subtituloResultados">Análise consolidada das avaliações</p>
+        </div>
+        <button id="btnFecharResultados" class="btn btn-ghost btn-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          Fechar
+        </button>
+      </div>
+
+      <!-- KPIs Row -->
+      <div class="grid md-grid-4 gap-4 mb-6 fade-up" style="animation-delay:0.05s;">
+        <div class="card" style="padding:1.25rem;">
+          <div class="stat-label">Respostas</div>
+          <div class="stat-value" id="kpiRespostas">0</div>
+        </div>
+        <div class="card" style="padding:1.25rem;">
+          <div class="stat-label">Média Geral</div>
+          <div class="stat-value" id="kpiMedia">0%</div>
+        </div>
+        <div class="card" style="padding:1.25rem;">
+          <div class="stat-label">Maior Força</div>
+          <div class="stat-value" id="kpiStrength" style="font-size:1rem;color:var(--success);">–</div>
+        </div>
+        <div class="card" style="padding:1.25rem;">
+          <div class="stat-label">Maior Fraqueza</div>
+          <div class="stat-value" id="kpiWeakness" style="font-size:1rem;color:var(--danger);">–</div>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="grid md-grid-2 gap-6 mb-6 fade-up" style="animation-delay:0.1s;">
+        <div class="card">
+          <h3 class="mb-4">Mapa de Maturidade (Média)</h3>
+          <div style="height:300px;display:flex;justify-content:center;">
+            <canvas id="turmaRadarChart"></canvas>
+          </div>
+        </div>
+        <div class="card">
+          <h3 class="mb-4">Distribuição de Níveis</h3>
+          <div style="height:300px;display:flex;justify-content:center;">
+            <canvas id="turmaBarChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Insights Row -->
+      <div class="grid md-grid-2 gap-6 fade-up" style="animation-delay:0.15s;">
+        <div class="card">
+          <h3 class="mb-4">
+            <span style="color:var(--success);">▲</span> Fortalezas
+          </h3>
+          <div class="flex flex-col gap-3" id="insightsStrengths">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+        <div class="card">
+          <h3 class="mb-4">
+            <span style="color:var(--danger);">▼</span> Oportunidades de Melhoria
+          </h3>
+          <div class="flex flex-col gap-3" id="insightsWeaknesses">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-overlay" id="modalExcluir">
+    <div class="modal">
+      <h3>Excluir Turma</h3>
+      <p>Tem certeza que deseja excluir esta turma e <strong>todas as suas respostas</strong>? Esta ação é irreversível.</p>
+      <div class="modal-actions">
+        <button class="btn btn-ghost btn-sm" id="btnCancelExcluir">Cancelar</button>
+        <button class="btn btn-danger btn-sm" id="btnConfirmExcluir">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          Excluir
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

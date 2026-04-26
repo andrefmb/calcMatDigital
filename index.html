@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Maturidade Digital</title>
+    <meta name="description" content="Autodiagnóstico de maturidade digital baseado em framework de transformação digital.">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <header class="app-header">
+        <div class="container" style="justify-content:center;">
+            <div class="logo">
+                <div class="logo-icon">M</div>
+                Calculadora de Maturidade Digital
+            </div>
+        </div>
+    </header>
+
+    <main class="container" style="max-width:760px;padding-top:3rem;">
+        <!-- Loading -->
+        <div id="loadingView" class="text-center fade-up" style="padding:4rem 0;">
+            <div style="width:44px;height:44px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 1rem;"></div>
+            <p style="font-weight:500;color:var(--text-muted);">Carregando avaliação...</p>
+        </div>
+
+        <!-- Error -->
+        <div id="errorView" class="card hidden fade-up text-center" style="border-top:3px solid var(--danger);">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:1rem;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            <h2 class="mb-2" style="color:var(--danger);">Turma não encontrada</h2>
+            <p>O link que você acessou é inválido ou a turma não existe mais.<br>Verifique com seu instrutor.</p>
+        </div>
+
+        <!-- Welcome -->
+        <div id="welcomeView" class="hidden fade-up">
+            <div class="card text-center" style="padding:3rem 2rem;">
+                <div style="width:64px;height:64px;border-radius:16px;background:linear-gradient(135deg,var(--primary),#7c3aed);display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;box-shadow:0 4px 20px rgba(79,70,229,0.3);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                </div>
+                <h1 class="mb-3">Avaliação de Maturidade Digital</h1>
+                <p style="max-width:480px;margin:0 auto 0.5rem;font-size:1.0625rem;">
+                    Analise o nível de prontidão digital da sua organização em <strong style="color:var(--secondary);">4 dimensões estratégicas</strong>.
+                </p>
+                <p class="mb-8" style="font-size:0.9375rem;">
+                    Turma: <strong id="lblNomeTurma" style="color:var(--primary);">...</strong>
+                </p>
+                <form id="formInit" style="display:inline-block;">
+                    <button type="submit" class="btn btn-primary btn-lg" style="min-width:220px;">
+                        Iniciar Avaliação →
+                    </button>
+                </form>
+                <p style="font-size:0.75rem;color:var(--text-light);margin-top:1rem;">8 perguntas · ~3 minutos · Anônimo</p>
+            </div>
+        </div>
+
+        <!-- Wizard -->
+        <div id="wizardView" class="card hidden fade-up">
+            <div class="progress-container">
+                <div class="progress-meta">
+                    <span class="progress-dimension" id="lblDimension">Dimensão</span>
+                    <span class="progress-step" id="lblProgress">1 / 8</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill" id="progressBar" style="width:12.5%;"></div>
+                </div>
+            </div>
+
+            <div class="question-area" style="min-height:380px;">
+                <h2 id="questionTitle" class="mb-6" style="font-size:1.25rem;line-height:1.4;">Carregando...</h2>
+                <div id="optionsContainer"></div>
+            </div>
+
+            <hr class="divider">
+            <div class="flex justify-between items-center">
+                <button type="button" id="btnPrev" class="btn btn-ghost btn-sm hidden">
+                    ← Voltar
+                </button>
+                <div id="spacerLeft"></div>
+                <button type="button" id="btnNext" class="btn btn-primary btn-sm" disabled>
+                    Avançar →
+                </button>
+            </div>
+        </div>
+
+        <!-- Result -->
+        <div id="resultView" class="hidden fade-up">
+            <div class="card result-hero text-center mb-6" style="padding:3rem 2rem;">
+                <div style="position:relative;z-index:1;">
+                    <div style="width:56px;height:56px;border-radius:50%;background:rgba(79,70,229,0.1);display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    </div>
+                    <p style="font-size:0.8125rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-light);margin-bottom:0.5rem;">Pontuação Final</p>
+                    <div class="result-score mb-3" id="resScoreTotal">0%</div>
+                    <div class="mb-4">
+                        <span id="resClassificationBadge" class="badge" style="font-size:0.875rem;padding:0.375rem 1.25rem;">—</span>
+                    </div>
+                    <p id="resDescription" style="max-width:520px;margin:0 auto;font-size:0.9375rem;color:var(--text-muted);">
+                    </p>
+                </div>
+            </div>
+
+            <div class="card mb-6">
+                <h3 class="mb-4 text-center">Seu Perfil de Maturidade</h3>
+                <div style="height:320px;display:flex;justify-content:center;align-items:center;">
+                    <canvas id="studentRadarChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Dimension breakdown -->
+            <div class="grid md-grid-2 gap-4 mb-6" id="dimBreakdown">
+                <!-- Filled by JS -->
+            </div>
+            
+            <div class="text-center mt-6">
+               <button onclick="window.location.reload()" class="btn btn-ghost">
+                   ↺ Refazer Avaliação
+               </button>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
