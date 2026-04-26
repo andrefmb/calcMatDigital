@@ -146,8 +146,14 @@ p { color: var(--text-muted); line-height: 1.7; }
   text-align: left; cursor: pointer;
   transition: all var(--transition);
   line-height: 1.5;
+  -webkit-tap-highlight-color: transparent;
 }
-.option-btn:hover { border-color: var(--primary); background: var(--primary-light); }
+/* Only apply hover on devices that actually support hover (mouse/trackpad) */
+@media (hover: hover) {
+  .option-btn:hover { border-color: var(--primary); background: var(--primary-light); }
+  .option-btn:hover .option-num { background: #ddd6fe; color: var(--primary); }
+}
+.option-btn:active { background: var(--primary-light); }
 .option-btn.selected { border-color: var(--primary); background: var(--primary-light); box-shadow: 0 0 0 2px var(--primary-glow); }
 
 .option-num {
@@ -158,7 +164,6 @@ p { color: var(--text-muted); line-height: 1.7; }
   font-size: 0.8125rem; font-weight: 700;
   transition: all var(--transition);
 }
-.option-btn:hover .option-num { background: #ddd6fe; color: var(--primary); }
 .option-btn.selected .option-num { background: var(--primary); color: white; }
 
 /* ─────── Progress ─────── */
