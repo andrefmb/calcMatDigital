@@ -95,8 +95,7 @@ const DIM_KEYS = ['score_tech', 'score_data', 'score_process', 'score_people'];
 let state = {
     turma: null,
     currentQ: 0,
-    answers: {},
-    locked: false  // prevents ghost taps on Safari mobile
+    answers: {}
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -145,22 +144,13 @@ function renderQuestion() {
     const container = document.getElementById('optionsContainer');
     container.innerHTML = '';
 
-    // Lock interactions briefly to prevent Safari mobile ghost taps
-    state.locked = true;
-    setTimeout(() => { state.locked = false; }, 500);
-
     q.options.forEach(opt => {
         const btn = document.createElement('button');
-        btn.className = 'option-btn fade-up';
+        btn.className = 'option-btn';
         btn.type = 'button';
         if (state.answers[q.id] === opt.value) btn.classList.add('selected');
         btn.innerHTML = `<div class="option-num">${opt.value}</div><span>${opt.text}</span>`;
-        
-        // Use pointerup instead of click for better mobile behavior
-        btn.addEventListener('pointerup', (e) => {
-            e.preventDefault();
-            if (!state.locked) selectOption(opt.value, btn);
-        });
+        btn.addEventListener('click', () => selectOption(opt.value, btn));
         container.appendChild(btn);
     });
 
@@ -168,16 +158,10 @@ function renderQuestion() {
 }
 
 function selectOption(value, el) {
-    if (state.locked) return;
     state.answers[QUESTIONS[state.currentQ].id] = value;
     document.querySelectorAll('.option-btn').forEach(o => o.classList.remove('selected'));
     el.classList.add('selected');
     document.getElementById('btnNext').disabled = false;
-
-    // Auto-advance after a comfortable delay
-    setTimeout(() => {
-        if (state.currentQ < QUESTIONS.length - 1) handleNext();
-    }, 450);
 }
 
 function updateNav() {
